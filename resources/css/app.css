@@ -1,0 +1,245 @@
+/* Импорт красивых шрифтов */
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Comfortaa:wght@300;400;500;600;700&display=swap');
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --pad: clamp(16px, 5vw, 100px);
+
+    /* ГРАДИЕНТ BODY */
+    --gradient-bg: linear-gradient(180deg, #0A2D8F 10%, #728AD5 90%);
+
+    /* ГРАДИЕНТЫ ДЛЯ КНОПОК И КАРТОЧЕК */
+    --gradient-primary: linear-gradient(135deg, #030D29 0%, #0A2D8F 50%, #030D29 100%);
+    --gradient-primary-hover: linear-gradient(135deg, #0A2D8F 0%, #1A3DBF 50%, #0A2D8F 100%);
+    --gradient-silver: linear-gradient(135deg, #E2E8F0 0%, #94A3B8 100%);
+    --gradient-silver-hover: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 100%);
+
+    /* СТЕКЛЯННЫЕ ФОНЫ ДЛЯ КАРТОЧЕК */
+    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+    --gradient-glass-hover: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%);
+    --gradient-card: linear-gradient(135deg, rgba(10, 45, 143, 0.4) 0%, rgba(114, 138, 213, 0.2) 100%);
+    --gradient-card-hover: linear-gradient(135deg, #0A2D8F 0%, #5B78E8 100%);
+
+    /* ЦВЕТА ТЕКСТА */
+    --text-white: #FFFFFF;
+    --text-dark: #0F172A;
+    --text-gray: #1E293B;
+    --text-light: #475569;
+
+    /* СВЕЧЕНИЯ */
+    --glow-blue: 0 0 20px rgba(10, 45, 143, 0.4);
+    --glow-blue-strong: 0 0 30px rgba(10, 45, 143, 0.6);
+    --glow-silver: 0 0 20px rgba(226, 232, 240, 0.4);
+    --glow-white: 0 0 25px rgba(255, 255, 255, 0.3);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    font-size: clamp(14px, 1.6vw, 18px);
+    line-height: 1.5;
+    color: var(--text-dark);
+    background: var(--gradient-bg);
+    min-height: 100vh;
+}
+
+/* Убираем все псевдоэлементы, которые могут создавать белые полосы */
+body::before,
+body::after,
+header::before,
+header::after,
+footer::before,
+footer::after,
+main::before,
+main::after,
+.container::before,
+.container::after,
+section::before,
+section::after,
+div::before,
+
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Comfortaa', 'Inter', sans-serif;
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0;
+    color: var(--text-white);
+}
+
+p {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    line-height: 1.6;
+    color: var(--text-gray);
+}
+
+a {
+    all: unset;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* ========== ГЛОБАЛЬНЫЕ КНОПКИ СО СВЕЧЕНИЕМ ========== */
+.btn-gradient {
+    background: var(--gradient-primary);
+    border: none;
+    color: white;
+    padding: 12px 28px;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--glow-blue);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-gradient:hover {
+    background: var(--gradient-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--glow-blue-strong);
+}
+
+.btn-gradient-silver {
+    background: var(--gradient-silver);
+    border: none;
+    color: var(--text-dark);
+    padding: 12px 28px;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--glow-silver);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.btn-gradient-silver:hover {
+    background: var(--gradient-silver-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(226, 232, 240, 0.6);
+}
+
+/* ========== СТЕКЛЯННЫЕ КАРТОЧКИ СО СВЕЧЕНИЕМ ========== */
+.glass-card {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.glass-card:hover {
+    background: var(--gradient-glass-hover);
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: var(--glow-white);
+}
+
+/* ========== ЦВЕТНЫЕ КАРТОЧКИ СО СВЕЧЕНИЕМ ========== */
+.colored-card {
+    background: var(--gradient-card);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.colored-card:hover {
+    background: var(--gradient-card-hover);
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: var(--glow-blue);
+}
+
+/* ========== ХЛЕБНЫЕ КРОШКИ ========== */
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 30px;
+    font-size: 14px;
+    font-family: 'Comfortaa', sans-serif;
+}
+
+.breadcrumbs a {
+    color: var(--text-white);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    opacity: 0.8;
+}
+
+.breadcrumbs a:hover {
+    color: var(--text-white);
+    opacity: 1;
+}
+
+.breadcrumbs .separator {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.breadcrumbs .current {
+    color: var(--text-white);
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+/* ========== КОНТЕЙНЕР ========== */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ========== СКРОЛЛБАР ========== */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #0A2D8F, #030D29);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #1A3DBF, #0A2D8F);
+}
+
+/* ========== АНИМАЦИЯ ========== */
+.section-animate {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.section-animate.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
