@@ -10,6 +10,7 @@ use App\Models\HomeText;
 use App\Models\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class DataController extends Controller
 {
@@ -29,9 +30,9 @@ class DataController extends Controller
                 'id' => $dir->id,
                 'title' => $dir->title,
                 'shortDesc' => $dir->short_desc,
-                'details' => json_decode($dir->details, true),
+                'details' => json_decode($dir->details, true) ?? [],
                 'image' => $dir->image,
-                'imageUrl' => $dir->image ? asset($dir->image) : null,
+                'imageUrl' => $dir->image ? asset(Storage::url($dir->image)) : null,
                 'created_at' => $dir->created_at,
                 'updated_at' => $dir->updated_at,
             ];
@@ -42,12 +43,12 @@ class DataController extends Controller
                 'id' => $event->id,
                 'title' => $event->title,
                 'shortDesc' => $event->short_desc,
-                'fullDesc' => json_decode($event->full_desc, true),
+                'fullDesc' => json_decode($event->full_desc, true) ?? [],
                 'image' => $event->image,
-                'imageUrl' => $event->image ? asset($event->image) : null,
+                'imageUrl' => $event->image ? asset(Storage::url($event->image)) : null,
                 'tag' => $event->tag,
                 'type' => $event->type,
-                'date' => json_decode($event->date, true),
+                'date' => json_decode($event->date, true) ?? ['day' => '', 'month' => '', 'year' => ''],
                 'dateString' => $event->date_string,
                 'participants' => $event->participants,
                 'duration' => $event->duration,
@@ -88,10 +89,13 @@ class DataController extends Controller
     public function uploadImage(Request $request)
     {
         if ($request->hasFile('img')) {
+            // Сохраняем в папку public/img внутри storage
             $path = $request->file('img')->store('img', 'public');
+
             return response()->json([
                 'success' => true,
-                'path' => '/storage/' . $path
+                'path' => $path, // Сохраняем "img/filename.ext"
+                'url' => asset(Storage::url($path)) // Ссылка для отображения на фронтенде
             ]);
         }
         return response()->json(['success' => false], 400);
@@ -101,29 +105,32 @@ class DataController extends Controller
     {
         $this->disableCache();
         $directions = $request->all();
+        $keptIds = [];
 
-        Direction::truncate();
         foreach ($directions as $item) {
             if (empty($item['title'])) {
                 continue;
             }
 
-            $directionData = [
-                'title' => $item['title'] ?? '',
-                'short_desc' => $item['shortDesc'] ?? '',
-                'image' => $item['image'] ?? '',
-            ];
+            // Корректно упаковываем json-структуру деталей
+            $details = isset($item['details'])
+                ? (is_array($item['details']) ? json_encode($item['details']) : $item['details'])
+                : json_encode([]);
 
-            if (isset($item['details'])) {
-                $directionData['details'] = is_array($item['details'])
-                    ? json_encode($item['details'])
-                    : $item['details'];
-            } else {
-                $directionData['details'] = json_encode([]);
-            }
-
-            Direction::create($directionData);
+            $direction = Direction::updateOrCreate(
+                ['id' => $item['id'] ?? null],
+                [
+                    'title' => $item['title'] ?? '',
+                    'short_desc' => $item['shortDesc'] ?? '',
+                    'image' => $item['image'] ?? '',
+                    'details' => $details
+                ]
+            );
+            $keptIds[] = $direction->id;
         }
+
+        // Удаляем только те записи, которые пользователь стёр в админке
+        Direction::whereNotIn('id', $keptIds)->delete();
 
         return response()->json(['success' => true]);
     }
@@ -132,38 +139,36 @@ class DataController extends Controller
     {
         $this->disableCache();
         $events = $request->all();
+        $keptIds = [];
 
-        Event::truncate();
         foreach ($events as $item) {
-            $eventData = [
-                'title' => $item['title'] ?? '',
-                'short_desc' => $item['shortDesc'] ?? '',
-                'image' => $item['image'] ?? '',
-                'tag' => $item['tag'] ?? '',
-                'type' => $item['type'] ?? '',
-                'participants' => $item['participants'] ?? 0,
-                'duration' => $item['duration'] ?? '',
-                'date_string' => $item['dateString'] ?? null,
-            ];
+            $fullDesc = isset($item['fullDesc'])
+                ? (is_array($item['fullDesc']) ? json_encode($item['fullDesc']) : $item['fullDesc'])
+                : json_encode([]);
 
-            if (isset($item['fullDesc'])) {
-                $eventData['full_desc'] = is_array($item['fullDesc'])
-                    ? json_encode($item['fullDesc'])
-                    : $item['fullDesc'];
-            } else {
-                $eventData['full_desc'] = json_encode([]);
-            }
+            $date = isset($item['date'])
+                ? (is_array($item['date']) ? json_encode($item['date']) : $item['date'])
+                : json_encode(['day' => '', 'month' => '', 'year' => '']);
 
-            if (isset($item['date'])) {
-                $eventData['date'] = is_array($item['date'])
-                    ? json_encode($item['date'])
-                    : $item['date'];
-            } else {
-                $eventData['date'] = json_encode(['day' => '', 'month' => '', 'year' => '']);
-            }
-
-            Event::create($eventData);
+            $event = Event::updateOrCreate(
+                ['id' => $item['id'] ?? null],
+                [
+                    'title' => $item['title'] ?? '',
+                    'short_desc' => $item['shortDesc'] ?? '',
+                    'image' => $item['image'] ?? '',
+                    'tag' => $item['tag'] ?? '',
+                    'type' => $item['type'] ?? '',
+                    'participants' => $item['participants'] ?? 0,
+                    'duration' => $item['duration'] ?? '',
+                    'date_string' => $item['dateString'] ?? null,
+                    'full_desc' => $fullDesc,
+                    'date' => $date
+                ]
+            );
+            $keptIds[] = $event->id;
         }
+
+        Event::whereNotIn('id', $keptIds)->delete();
 
         return response()->json(['success' => true]);
     }
@@ -173,15 +178,32 @@ class DataController extends Controller
         $this->disableCache();
         $data = $request->all();
 
-        if (isset($data['case1']) && isset($data['case2']) && isset($data['case3'])) {
-            Statistic::updateOrCreate(['key' => 'case1'], ['value' => $data['case1']['value'], 'title' => $data['case1']['title']]);
-            Statistic::updateOrCreate(['key' => 'case2'], ['value' => $data['case2']['value'], 'title' => $data['case2']['title']]);
-            Statistic::updateOrCreate(['key' => 'case3'], ['value' => $data['case3']['value'], 'title' => $data['case3']['title']]);
-        } else {
-            foreach ($data as $key => $stat) {
-                Statistic::updateOrCreate(['key' => $key], ['value' => $stat['value'], 'title' => $stat['title']]);
+        // Карта для точечного обновления
+        $idMap = [
+            'case1' => 1,
+            'case2' => 2,
+            'case3' => 3
+        ];
+
+        foreach ($data as $key => $stat) {
+            // Игнорируем мусорные ключи, которые случайно прилетают с фронта
+            if ($key === '[object Object]' || !is_array($stat)) {
+                continue;
+            }
+
+            if (isset($idMap[$key])) {
+                \DB::table('statistics')
+                    ->where('id', $idMap[$key])
+                    ->update([
+                        'value' => (int)($stat['value'] ?? 0),
+                        'title' => (string)($stat['title'] ?? ''),
+                        'updated_at' => now()
+                    ]);
             }
         }
+
+        // На всякий случай удаляем любой мусор, который мог создаться ранее
+        \DB::table('statistics')->where('key', '[object Object]')->delete();
 
         return response()->json(['success' => true]);
     }

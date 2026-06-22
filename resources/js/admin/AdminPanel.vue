@@ -114,16 +114,24 @@ export default {
             this.hasUnsavedChanges = Object.values(this.tabHasChanges).some(v => v === true)
             this.$emit('has-changes', this.hasUnsavedChanges)
         },
-        saveAllChanges() {
+        async saveAllChanges() {
             const currentComponentRef = this.$refs.activeComponent
-            if (currentComponentRef && currentComponentRef.saveData) {
-                currentComponentRef.saveData()
+            if (currentComponentRef && typeof currentComponentRef.saveData === 'function') {
+                try {
+                    // Асинхронно дожидаемся завершения запроса у дочерней вкладки
+                    await currentComponentRef.saveData()
+
+                    // Сбрасываем изменения только при успешной отправке
+                    this.tabHasChanges[this.activeTab] = false
+                    this.hasUnsavedChanges = Object.values(this.tabHasChanges).some(v => v === true)
+                    this.$emit('has-changes', this.hasUnsavedChanges)
+
+                    localStorage.setItem('admin_active_tab', this.activeTab)
+                } catch (error) {
+                    console.error("Ошибка сохранения данных:", error)
+                    alert("Произошла ошибка при сохранении изменений. Проверьте соединение.")
+                }
             }
-            for (const tabId in this.tabHasChanges) {
-                this.tabHasChanges[tabId] = false
-            }
-            this.hasUnsavedChanges = false
-            localStorage.setItem('admin_active_tab', this.activeTab)
         },
         handleWheel(e) {
             e.preventDefault()

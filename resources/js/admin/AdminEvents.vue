@@ -12,7 +12,7 @@
                 <div class="drag-handle">
                     <AdminIcon name="grip-vertical" :size="16" />
                 </div>
-                <img :src="event.imageUrl || '/storage/img/placeholder.webp'" :alt="event.title" class="event-image" @error="e => e.target.src = '/storage/img/placeholder.webp'">
+                <img :src="event.imageUrl || '/storage/img/placeholder.png'" :alt="event.title" class="event-image" @error="e => e.target.src = '/storage/img/placeholder.webp'">
                 <div class="event-info">
                     <h4>{{ event.title }}</h4>
                     <p>{{ event.shortDesc || 'Описание отсутствует' }}</p>

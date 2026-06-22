@@ -1,3 +1,5 @@
+import { ref } from 'vue'
+
 const API_URL = '/api'
 
 async function fetchApi(endpoint, options = {}) {
@@ -34,12 +36,19 @@ export function useDataStore() {
 
     const getDirections = async () => {
         const data = await fetchApi('/data')
-        return (data.directions || []).map(dir => ({
-            ...dir,
-            details: parseJsonField(dir.details, []),
-            image: dir.image ? dir.image.replace('/img//', '/') : null,
-            imageUrl: dir.image ? dir.image.replace('/img//', '/') : null
-        }))
+        return (data.directions || []).map(dir => {
+            // Если путь уже полный (содержит http или /storage/), не ломаем его
+            let cleanUrl = dir.imageUrl || dir.image || '/storage/img/placeholder.webp';
+            if (cleanUrl.includes('/storage//storage/')) {
+                cleanUrl = cleanUrl.replace('/storage//storage/', '/storage/');
+            }
+            return {
+                ...dir,
+                details: parseJsonField(dir.details, []),
+                image: cleanUrl,
+                imageUrl: cleanUrl
+            }
+        })
     }
 
     const saveDirections = async (directions) => {
@@ -51,15 +60,19 @@ export function useDataStore() {
 
     const getEvents = async () => {
         const data = await fetchApi('/data')
-        return (data.events || []).map(event => ({
-            ...event,
-            fullDesc: parseJsonField(event.fullDesc, []),
-            // ========== ЕДИНСТВЕННОЕ ИЗМЕНЕНИЕ: ПОДДЕРЖКА dateString ==========
-            dateString: event.dateString || '',  // <--- читаем новое поле
-            // ========== КОНЕЦ ИЗМЕНЕНИЯ ==========
-            image: event.image ? event.image.replace('/img//', '/') : null,
-            imageUrl: event.image ? event.image.replace('/img//', '/') : null
-        }))
+        return (data.events || []).map(event => {
+            let cleanUrl = event.imageUrl || event.image || '/storage/img/placeholder.webp';
+            if (cleanUrl.includes('/storage//storage/')) {
+                cleanUrl = cleanUrl.replace('/storage//storage/', '/storage/');
+            }
+            return {
+                ...event,
+                fullDesc: parseJsonField(event.fullDesc, []),
+                dateString: event.dateString || '',
+                image: cleanUrl,
+                imageUrl: cleanUrl
+            }
+        })
     }
 
     const saveEvents = async (events) => {
@@ -78,11 +91,14 @@ export function useDataStore() {
         }
     }
 
-    const updateStatistics = async (key, value, title) => {
-        const stats = await getStatistics()
-        stats[key] = { value, title }
-        return fetchApi('/statistics', { method: 'POST', body: JSON.stringify(stats) })
+    // ========== ИСПРАВЛЕННЫЙ МЕТОД: Принимает весь объект целиком ==========
+    const updateStatistics = async (allStats) => {
+        return fetchApi('/statistics', {
+            method: 'POST',
+            body: JSON.stringify(allStats)
+        })
     }
+    // =======================================================================
 
     const getHomeTexts = async () => {
         const data = await fetchApi('/data')
